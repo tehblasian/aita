@@ -1,6 +1,10 @@
+import argparse
 import datetime
+import sys
 
 import requests
+
+from models import RedditPost
 
 FLAIRS = ['No A-holes here', 'Asshole', 'Not the A-hole', 'Everyone Sucks']
 PUSHSHIFT_URL = 'https://api.pushshift.io/reddit/search/submission/'
@@ -31,13 +35,23 @@ def get_reddit_params(id):
     }
 
 
-def fetch_label(post_id):
+def fetch_reddit_info(post_id):
+    """[summary]
+
+    Arguments:
+        post_id {string} -- the reddit post's identifier
+
+    Returns:
+        2d tuple -- (label, title)
+    """
     r_reddit = requests.get(
         REDDIT_URL, params=get_reddit_params(post_id), headers={'User-agent': 'AITA bot'})
     reddit_response = r_reddit.json()
     label = reddit_response['data']['children'][0]['data'].get(
         'link_flair_text', None)
-    return label
+    title = reddit_response['data']['children'][0]['data'].get(
+        'title', None)
+    return (label, title)
 
 
 class DataStore:
@@ -61,7 +75,7 @@ class DataStore:
             print(label_count)
 
 
-def get_data(min_count, after_epoch=datetime.datetime(2019, 1, 1).timestamp()):
+def get_data(min_count, after_epoch):
     """ Fetches and stores reddit data
 
     Arguments:
@@ -76,18 +90,33 @@ def get_data(min_count, after_epoch=datetime.datetime(2019, 1, 1).timestamp()):
         {label: [post1, post2], ...}
     """
     ds = DataStore()
+    n_batch = 1
     while not ds.is_enough_data(min_count):
         pshift_dict = fetch_pshift(after_epoch)
         for post in pshift_dict['data']:
             self_text = post['selftext']
-            label = fetch_label(post['id'])
+            label, title = fetch_reddit_info(post['id'])
+            created_at = post['created_utc']
+            reddit_post = RedditPost(title, self_text, created_at)
             if label in FLAIRS:
-                ds.add_data_point(label, self_text)
-            after_epoch = post['created_utc']
+                ds.add_data_point(label, reddit_post)
+            after_epoch = created_at
+        print(f'At Batch #{n_batch}:')
+        n_batch += 1
+        ds.print_counts()
 
-    ds.print_counts()
     return ds.label_dict
 
 
 if __name__ == '__main__':
-    get_data(1)
+    parser = argparse.ArgumentParser(description='Extracts reddit data')
+    parser.add_argument(
+        '--min_count', help='Data will be fetched in batches until all classes have a <min_count> number of posts associated with it.(Default=100)',
+        default=100)
+    parser.add_argument(
+        '--start_epoch', help='Posts will be fetched started from that epoch. (Default=1546300800)', default=datetime.datetime(2019, 1, 1).timestamp())
+    args = parser.parse_args()
+
+    start_epoch = args.start_epoch
+    min_count = args.min_count
+    get_data(min_count, after_epoch=start_epoch)

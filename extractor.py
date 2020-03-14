@@ -4,6 +4,7 @@ import sys
 
 import requests
 
+from loader import MongoLoader
 from models import RedditPost
 
 FLAIRS = ['No A-holes here', 'Asshole', 'Not the A-hole', 'Everyone Sucks']
@@ -57,6 +58,8 @@ def fetch_reddit_info(post_id):
 class DataStore:
     def __init__(self):
         self.label_dict = {flair: [] for flair in FLAIRS}
+        self.saved_counts = {flair: 0 for flair in FLAIRS}
+        self.loader = MongoLoader()
 
     def is_enough_data(self, min_count):
         for label in self.label_dict:
@@ -69,10 +72,16 @@ class DataStore:
         self.label_dict[label].append(self_text)
 
     def print_counts(self):
-        count_list = [(label, len(selftexts))
+        count_list = [(label, len(selftexts) + self.saved_counts[label])
                       for label, selftexts in self.label_dict.items()]
         for label_count in count_list:
             print(label_count)
+    
+    def save_posts(self):
+        self.loader.save_data(self.label_dict)
+        for label in self.label_dict:
+            self.saved_counts[label] += len(self.label_dict[label])
+            self.label_dict[label] = []
 
 
 def get_data(min_count, after_epoch):
@@ -103,6 +112,7 @@ def get_data(min_count, after_epoch):
             after_epoch = created_at
         print(f'At Batch #{n_batch}:')
         n_batch += 1
+        ds.save_posts()
         ds.print_counts()
 
     return ds.label_dict

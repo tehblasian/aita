@@ -7,24 +7,25 @@ import requests
 from loader import MongoLoader
 from models import RedditPost
 
-FLAIRS = ['No A-holes here', 'Asshole', 'Not the A-hole', 'Everyone Sucks']
+FLAIRS = ['NO A-HOLES HERE', 'ASSHOLE', 'NOT THE A-HOLE', 'EVERYONE SUCKS']
+
 PUSHSHIFT_URL = 'https://api.pushshift.io/reddit/search/submission/'
 REDDIT_URL = 'https://www.reddit.com/api/info.json'
 
 
-def get_pshift_params(after_epoch):
+def get_pshift_params(before_epoch):
     return {
         'subreddit': 'amitheasshole',
-        'sort': 'asc',
+        'sort': 'desc',
         'size': 100,
-        'after': int(after_epoch),
+        'before': int(before_epoch),
         'score': '>10'
     }
 
 
-def fetch_pshift(after_epoch):
+def fetch_pshift(before_epoch):
     r_pshift = requests.get(
-        PUSHSHIFT_URL, params=get_pshift_params(after_epoch))
+        PUSHSHIFT_URL, params=get_pshift_params(before_epoch))
     pshift_response = r_pshift.json()
     return pshift_response
 
@@ -84,7 +85,7 @@ class DataStore:
             self.label_dict[label] = []
 
 
-def get_data(min_count, after_epoch):
+def get_data(min_count, before_epoch):
     """ Fetches and stores reddit data
 
     Arguments:
@@ -92,8 +93,7 @@ def get_data(min_count, after_epoch):
         than <min_count> number of posts associated with it
 
     Keyword Arguments:
-        after_epoch {integer} -- Starts fetching the data from this specified timestamp and onwards
-        (default: {datetime.datetime(2019, 1, 1).timestamp()})
+        before_epoch {integer} -- Starts fetching the data from this specified timestamp and goes backwards
     Returns:
         a dict with the following format
         {label: [post1, post2], ...}
@@ -101,15 +101,15 @@ def get_data(min_count, after_epoch):
     ds = DataStore()
     n_batch = 1
     while not ds.is_enough_data(min_count):
-        pshift_dict = fetch_pshift(after_epoch)
+        pshift_dict = fetch_pshift(before_epoch)
         for post in pshift_dict['data']:
             self_text = post['selftext']
             label, title = fetch_reddit_info(post['id'])
             created_at = post['created_utc']
             reddit_post = RedditPost(title, self_text, created_at)
-            if label in FLAIRS:
-                ds.add_data_point(label, reddit_post)
-            after_epoch = created_at
+            if label is not None and label.upper() in FLAIRS:
+                ds.add_data_point(label.upper(), reddit_post)
+            before_epoch = created_at
         print(f'At Batch #{n_batch}:')
         n_batch += 1
         ds.save_posts()
@@ -122,11 +122,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Extracts reddit data')
     parser.add_argument(
         '--min_count', help='Data will be fetched in batches until all classes have a <min_count> number of posts associated with it.(Default=100)',
-        default=100)
+        default=100, type=int)
     parser.add_argument(
-        '--start_epoch', help='Posts will be fetched started from that epoch. (Default=1546300800)', default=datetime.datetime(2019, 1, 1).timestamp())
+        '--start_epoch', help='Posts will be fetched started from that epoch and will go backwards in time (Default=Current epoch)', default=datetime.datetime.now().timestamp(),
+        type=int)
     args = parser.parse_args()
 
     start_epoch = args.start_epoch
     min_count = args.min_count
-    get_data(min_count, after_epoch=start_epoch)
+    get_data(min_count, start_epoch)

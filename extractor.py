@@ -64,7 +64,7 @@ class DataStore:
 
     def is_enough_data(self, min_count):
         for label in self.label_dict:
-            if len(self.label_dict[label]) < min_count:
+            if len(self.label_dict[label]) + self.saved_counts[label] < min_count:
                 return False
 
         return True

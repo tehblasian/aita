@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
+
+import sys
+sys.path.append('../')
 from spark.init_spark import init_spark
 
 def class_distribution():

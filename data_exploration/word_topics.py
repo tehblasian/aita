@@ -5,7 +5,6 @@ from pyspark.mllib.linalg import Vectors
 
 import nltk
 
-
 import sys
 sys.path.append('../')
 from spark.init_spark import init_spark

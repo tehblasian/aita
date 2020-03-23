@@ -7,10 +7,8 @@ from spark.init_spark import init_spark
 from config import AITA_CLEANED_COLLECTION
 
 
-adjective_tags = ['JJ', 'JJR', 'JJS']
-words_to_ignore = ['i', 'u', 'aita', 'like', 'would', 'this', 'it', 'get', 'got', 'the']
-
 N = 30
+words_to_ignore = ['i', 'u', 'aita', 'like', 'would', 'this', 'it', 'get', 'got', 'the']
 
 
 def word_frequency(n):

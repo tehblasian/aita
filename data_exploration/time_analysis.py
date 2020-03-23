@@ -6,13 +6,14 @@ import numpy as np
 import sys
 sys.path.append('../')
 from spark.init_spark import init_spark
+from config import AITA_EXTRACTED_COLLECTION
+
 
 def days_of_the_week_count():
-    spark = init_spark()
+    spark = init_spark(AITA_EXTRACTED_COLLECTION)
     posts = spark.read.format('mongo').load().rdd
 
     def get_weekday(timestamp):
-        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         return datetime.datetime.fromtimestamp(timestamp).weekday()
 
     label_day = posts \

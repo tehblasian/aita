@@ -15,6 +15,14 @@ words_to_ignore = ['i', 'u', 'aita', 'like', 'would', 'this', 'it', 'get', 'got'
 
 
 def word_frequency(n):
+    """Generates four plots for each AITA label that display the distribution of their top n words.
+
+    Arguments:
+         n {integer} -- Number of top words to display
+
+    Returns:
+        None
+    """
     spark = init_spark(AITA_CLEANED_COLLECTION)
     data_rdd = spark.read.format('mongo').load().rdd
 

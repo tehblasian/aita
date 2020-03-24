@@ -3,20 +3,26 @@ from pyspark.ml.feature import CountVectorizer
 from pyspark.mllib.clustering import LDA
 from pyspark.mllib.linalg import Vectors
 
-import nltk
 
 import sys
 sys.path.append('../')
 from spark.init_spark import init_spark
 from config import AITA_CLEANED_COLLECTION
 
-nltk.download('averaged_perceptron_tagger')
-
 NUM_TOPICS = 15
 NUM_WORDS_PER_TOPICS = 10
 
 
 def word_topics(num_topics, num_words_per_topics):
+    """Generates topics from word clusters.
+
+    Arguments:
+        num_topics {integer} -- Number of topics to infer
+        num_words_per_topics {integer} -- Number of terms to collect for each topic
+
+    Returns:
+        None
+    """
     spark = init_spark(AITA_CLEANED_COLLECTION)
     data_rdd = spark.read.format('mongo').load().rdd
 

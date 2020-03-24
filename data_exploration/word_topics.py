@@ -21,8 +21,7 @@ def word_topics(num_topics, num_words_per_topics):
     data_rdd = spark.read.format('mongo').load().rdd
 
     preprocessed_rdd = data_rdd\
-        .flatMap(lambda row: [[word.lower() for sublist in row['header'] for word in sublist] +
-                                      [word.lower() for sublist in row['content'] for word in sublist]]) \
+        .flatMap(lambda row: [row['header'].lower().split(' ') + row['content'].lower().split(' ')]) \
         .zipWithIndex() \
         .map(lambda x: Row(index=x[1], words=x[0]))
 

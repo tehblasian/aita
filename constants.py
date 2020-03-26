@@ -9,3 +9,10 @@ label_colors = {
     NAH: 'grey',
     ES: 'black'
 }
+
+label_ids = {
+    NTAH: 0,
+    AH: 1,
+    NAH: 2,
+    ES: 3
+}

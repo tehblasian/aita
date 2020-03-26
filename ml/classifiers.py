@@ -55,7 +55,7 @@ class NaiveBayesClassifier(AbstractClassifier):
 class RandomForestClassifier(AbstractClassifier):
     def __init__(self, dataset, train_ratio=0.8):
         self.dataset = dataset
-        self.classifier = RandomForestClassifier(label='label', featuresCol='features', impurity='gini',
+        self.classifier = RandomForest(labelCol='label', featuresCol='features', impurity='gini',
                                               maxBins=31)
         self.evaluator = MulticlassClassificationEvaluator()
         self.train_set, self.test_set = dataset.randomSplit([train_ratio, 1-train_ratio])
@@ -63,7 +63,8 @@ class RandomForestClassifier(AbstractClassifier):
     def _get_param_grid(self):
         return ParamGridBuilder() \
             .addGrid(self.classifier.maxDepth, [5, 7, 11, 13]) \
-            .addGrid(self.classifier.numTrees, [5, 7, 11, 13, 17])
+            .addGrid(self.classifier.numTrees, [5, 7, 11, 13, 17]) \
+            .build()
 
 class SVMClassifier(AbstractClassifier):
     def __init__(self, dataset, train_ratio=0.8):
@@ -73,5 +74,7 @@ class SVMClassifier(AbstractClassifier):
         self.train_set, self.test_set = dataset.randomSplit([train_ratio, 1-train_ratio])
     
     def _get_param_grid(self):
+        self.classifier.getClassifier
         return ParamGridBuilder() \
-            .addGrid(self.classifier.regParam, [0.1, 0.2, 0.4, 0.6, 0.8, 1])
+            .addGrid(self.classifier.getClassifier().regParam, [0.1, 0.2, 0.4, 0.6, 0.8, 1]) \
+            .build()

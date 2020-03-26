@@ -5,6 +5,8 @@ from nltk.tag import pos_tag
 from nltk.tokenize import sent_tokenize, word_tokenize
 from pyspark.sql import Row
 
+from config import (AITA_CLEANED_COLLECTION, AITA_DB_NAME,
+                    AITA_EXTRACTED_COLLECTION)
 from spark.init_spark import init_spark
 
 nltk.download('punkt')
@@ -15,10 +17,10 @@ STOPWORDS_SET = set(stopwords.words('english'))
 
 
 def main():
-    spark = init_spark()
+    spark = init_spark(AITA_EXTRACTED_COLLECTION)
     rdd = spark.read.format('mongo').load().rdd
     cleaned = clean_data(rdd)
-    cleaned.toDF().write.format("mongo").mode("overwrite").option("database", "aitaDB").option("collection", "cleaneddata").save()
+    cleaned.toDF().write.format("mongo").mode("overwrite").option("database", AITA_DB_NAME).option("collection", AITA_CLEANED_COLLECTION).save()
 
 
 def clean_data(rdd):
@@ -52,10 +54,10 @@ def clean_data(rdd):
             Row -- A row that has been processed
         """
 
-        content = ' '.join([lemmatizer.lemmatize(word)\
+        content = ' '.join([lemmatizer.lemmatize(word.lower())\
                     for sentence in sent_tokenize(record['content'])\
                         for word, pos in pos_tag(word_tokenize(sentence)) if filter_word(word, pos)])
-        header = ' '.join([lemmatizer.lemmatize(word)\
+        header = ' '.join([lemmatizer.lemmatize(word.lower())\
                     for sentence in sent_tokenize(record['header'])\
                         for word, pos in pos_tag(word_tokenize(sentence)) if filter_word(word, pos)])
         return Row(content=content, header=header, label=record['label'], created_at=record['created_at'])

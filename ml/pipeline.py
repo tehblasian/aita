@@ -12,17 +12,17 @@ class AITAPipeline:
         self._dataset = dataset
         return self
 
-    def transformer(self, text_transformer):
+    def transformer(self, transformer):
         """Sets the transformation that will be applied to the data
         
         Arguments:
-            text_transformer {TextTransformer} -- The transformation that will be applied to
+            transformer {TextTransformer} -- The transformation that will be applied to
             the data
         
         Returns:
             AITAPipeline -- The instance of the pipeline
         """
-        self.text_transformer = transformer
+        self._transformer = transformer
         return self
 
     def classifier(self, classifier):
@@ -34,7 +34,7 @@ class AITAPipeline:
         Returns:
             AITAPipeline -- The instance of the pipeline
         """
-        self.classifier = classifier
+        self._classifier = classifier
         return self
 
     def run(self):
@@ -44,14 +44,14 @@ class AITAPipeline:
             AttributeError: Raised if one of dataset, classifier or transformer are not set
         """
         
-        # if not hasattr(self, '_dataset') or not hasattr(self, 'data_transformer') or not hasattr(self, 'classifier'):
+        # if not hasattr(self, '_dataset') or not hasattr(self, '_transformer') or not hasattr(self, '_classifier'):
         #     raise AttributeError('Please specify a dataset, a data transformer and a classifier')
         
-        # data = self.text_transformer.transform(self._dataset)
+        # data = self._transformer.transform(self._dataset)
         data = self._dataset
-        self.classifier = self.classifier(data)
-        self.classifier.train()
-        f1, accuracy, precision, recall = self.classifier.evaluate()
+        self._classifier = self._classifier(data)
+        self._classifier.train()
+        f1, accuracy, precision, recall = self._classifier.evaluate()
 
         print('Accuracy', accuracy)  
         print('Precision:', precision)

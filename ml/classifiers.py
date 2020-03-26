@@ -1,4 +1,3 @@
-# https://spark.apache.org/docs/1.5.1/mllib-naive-bayes.html
 from abc import ABC
 
 from pyspark.ml.classification import LinearSVC, NaiveBayes, OneVsRest
@@ -29,7 +28,6 @@ class AbstractClassifier(ABC):
         """
         if not hasattr(self, 'model'):
             raise AttributeError('Please train the model before evaluation')
-        import pdb; pdb.set_trace()
         predictions = self.model.transform(self.test_set)
         
         f1 = self.evaluator.evaluate(predictions)
@@ -48,14 +46,6 @@ class NaiveBayesClassifier(AbstractClassifier):
         self.classifier = NaiveBayes(labelCol='label', featuresCol='features')
         self.evaluator = MulticlassClassificationEvaluator()
         self.train_set, self.test_set = dataset.randomSplit([train_ratio, 1-train_ratio])
-
-    def train(self, k_folds=7):
-        param_grid = ParamGridBuilder() \
-               .addGrid(self.classifier.smoothing, [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]) \
-               .build()
-
-        cross_validator = CrossValidator(estimator=self.classifier, estimatorParamMaps=param_grid, evaluator=self.evaluator, numFolds=k_folds)
-        self.model = cross_validator.fit(self.train_set)
     
     def _get_param_grid(self):
         return ParamGridBuilder() \

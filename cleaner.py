@@ -1,6 +1,6 @@
 import nltk
 from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer, WordNetLemmatizer
+from nltk.stem import WordNetLemmatizer
 from nltk.tag import pos_tag
 from nltk.tokenize import sent_tokenize, word_tokenize
 from pyspark.sql import Row
@@ -12,7 +12,8 @@ nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('averaged_perceptron_tagger')
 STOPWORDS_SET = set(stopwords.words('english'))
-  
+
+
 def main():
     spark = init_spark()
     rdd = spark.read.format('mongo').load().rdd
@@ -22,6 +23,7 @@ def main():
 
 def clean_data(rdd):
     lemmatizer = WordNetLemmatizer()
+
     def filter_word(word, pos):
         """Filters out stop words, punctuation, numbers, and proper nouns
         Arguments:
@@ -33,7 +35,7 @@ def clean_data(rdd):
         """
         is_stopword = word in STOPWORDS_SET
         is_word = word.isalnum()
-        is_number = word.replace('.','',1).isdigit()
+        is_number = word.replace('.', '', 1).isdigit()
         # str.isdigit returns false with numbers that have a decimal point
         # so replacing it with a number makes it work as intended
         is_proper_noun = pos == 'NNP'
@@ -59,6 +61,7 @@ def clean_data(rdd):
         return Row(content=content, header=header, label=record['label'], created_at=record['created_at'])
 
     return rdd.map(process_record)
+
 
 if __name__ == '__main__':
     main()

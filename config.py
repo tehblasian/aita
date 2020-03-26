@@ -1,0 +1,5 @@
+AITA_DB_NAME = 'aitaDB'
+AITA_EXTRACTED_COLLECTION = 'extractedinfo'
+AITA_CLEANED_COLLECTION = 'cleaneddata'
+
+MONGO_CONNECTION_STRING = 'mongodb://127.0.0.1'

@@ -1,5 +1,8 @@
 
 class AITAPipeline:
+    def __init__(self, spark):
+        self._spark = spark
+
     def dataset(self, dataset):
         """Sets the data that will be transformed, and trained/tested on
         
@@ -44,13 +47,15 @@ class AITAPipeline:
             AttributeError: Raised if one of dataset, classifier or transformer are not set
         """
         
-        # if not hasattr(self, '_dataset') or not hasattr(self, '_transformer') or not hasattr(self, '_classifier'):
-        #     raise AttributeError('Please specify a dataset, a data transformer and a classifier')
+        if not hasattr(self, '_dataset') or not hasattr(self, '_transformer') or not hasattr(self, '_classifier'):
+            raise AttributeError('Please specify a dataset, a data transformer and a classifier')
         
-        # data = self._transformer.transform(self._dataset)
-        data = self._dataset
+        self._transformer = self._transformer(self._spark, self._dataset)
+        data = self._transformer.transform()
+
         self._classifier = self._classifier(data)
         self._classifier.train()
+
         f1, accuracy, precision, recall = self._classifier.evaluate()
 
         print('Accuracy', accuracy)  

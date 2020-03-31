@@ -32,7 +32,7 @@ def fetch_pshift(before_epoch):
 def get_reddit_params(id):
     # id was concatenated with t3_ because of https://www.reddit.com/dev/api/#fullnames
     return {
-        'id': f't3_{id}'
+        'id': 't3_{}'.format(id)
     }
 
 
@@ -84,15 +84,15 @@ class DataStore:
             self.label_dict[label] = []
 
 
-def get_data(min_count, before_epoch):
+def get_data(min_count, before_epoch, end_epoch):
     """ Fetches and stores reddit data
 
     Arguments:
         min_count {integer} -- This function keeps fetching until all labels have more 
         than <min_count> number of posts associated with it
 
-    Keyword Arguments:
         before_epoch {integer} -- Starts fetching the data from this specified timestamp and goes backwards
+        end_epoch {integer} -- Stops fetching once this timestamp is reached
     Returns:
         a dict with the following format
         {label: [post1, post2], ...}
@@ -105,11 +105,17 @@ def get_data(min_count, before_epoch):
             self_text = post['selftext']
             label, title = fetch_reddit_info(post['id'])
             created_at = post['created_utc']
+
+            if created_at < end_epoch:
+                ds.save_posts()
+                ds.print_counts()
+                break
+
             reddit_post = RedditPost(title, self_text, created_at)
             if label is not None and label.upper() in FLAIRS:
                 ds.add_data_point(label.upper(), reddit_post)
             before_epoch = created_at
-        print(f'At Batch #{n_batch}:')
+        print('At Batch #{}'.format(n_batch))
         n_batch += 1
         ds.save_posts()
         ds.print_counts()
@@ -125,8 +131,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--start_epoch', help='Posts will be fetched started from that epoch and will go backwards in time (Default=Current epoch)', default=datetime.datetime.now().timestamp(),
         type=int)
+    parser.add_argument(
+        '--end_epoch', help='Extractor will stop fetching if it sees that the post\'s timestamp is lower than this value (Default=0)', default=0,
+        type=int)
     args = parser.parse_args()
 
     start_epoch = args.start_epoch
     min_count = args.min_count
-    get_data(min_count, start_epoch)
+    end_epoch = args.end_epoch
+    get_data(min_count, start_epoch, end_epoch)

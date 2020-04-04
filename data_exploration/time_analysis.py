@@ -9,7 +9,7 @@ from spark.init_spark import init_spark
 from config import AITA_EXTRACTED_COLLECTION
 from constants import NAH, AH, NTAH, ES, label_colors
 
-def days_of_the_week_count():
+def time_analysis():
     spark = init_spark(AITA_EXTRACTED_COLLECTION)
     posts = spark.read.format('mongo').load().rdd
 
@@ -55,7 +55,3 @@ def days_of_the_week_count():
     plt.legend((p1[0], p2[0], p3[0], p4[0]), [NAH, AH, NTAH, ES])
 
     plt.show()
-
-
-if __name__ == '__main__':
-    days_of_the_week_count()

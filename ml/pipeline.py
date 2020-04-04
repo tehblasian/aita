@@ -73,9 +73,4 @@ class AITAPipeline:
         self._classifier = self._classifier(data)
         self._classifier.train()
 
-        f1, accuracy, precision, recall = self._classifier.evaluate()
-
-        print('Accuracy', accuracy)  
-        print('Precision:', precision)
-        print('Recall:', recall)
-        print('F1-Score:', f1)
+        return self._classifier.evaluate()

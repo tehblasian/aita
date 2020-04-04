@@ -9,14 +9,15 @@ from config import (AITA_CLEANED_COLLECTION, AITA_DB_NAME,
                     AITA_EXTRACTED_COLLECTION)
 from spark.init_spark import init_spark
 
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('wordnet')
-nltk.download('averaged_perceptron_tagger')
 STOPWORDS_SET = set(stopwords.words('english'))
 
 
-def main():
+def clean():
+    nltk.download('punkt')
+    nltk.download('stopwords')
+    nltk.download('wordnet')
+    nltk.download('averaged_perceptron_tagger')
+
     spark = init_spark(AITA_EXTRACTED_COLLECTION)
     rdd = spark.read.format('mongo').load().rdd
     cleaned = clean_data(rdd)
@@ -63,7 +64,3 @@ def clean_data(rdd):
         return Row(content=content, header=header, label=record['label'], created_at=record['created_at'])
 
     return rdd.map(process_record)
-
-
-if __name__ == '__main__':
-    main()

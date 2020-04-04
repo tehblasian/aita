@@ -29,7 +29,3 @@ def show_bar_plot(distribution):
     plt.xlabel('Label')
 
     plt.show()
-
-
-if __name__ == '__main__':
-    class_distribution()

@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pyspark.sql.types import Row
 
-
 import sys
 sys.path.append('../')
 from spark.init_spark import init_spark
@@ -14,7 +13,7 @@ N = 30
 words_to_ignore = ['i', 'u', 'aita', 'like', 'would', 'this', 'it', 'get', 'got', 'the']
 
 
-def word_frequency(n):
+def word_frequency(n=N):
     """Generates four plots for each AITA label that display the distribution of their top n words.
 
     Arguments:
@@ -66,7 +65,3 @@ def generate_plot(index, data, n, label):
     y_pos = np.arange(len(words))
     plt.bar(y_pos, counts, color=label_colors.get(label))
     plt.xticks(y_pos, words)
-
-
-if __name__ == '__main__':
-    word_frequency(N)

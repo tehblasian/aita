@@ -13,7 +13,7 @@ NUM_TOPICS = 15
 NUM_WORDS_PER_TOPICS = 10
 
 
-def word_topics(num_topics, num_words_per_topics):
+def word_topics(num_topics=NUM_TOPICS, num_words_per_topics=NUM_WORDS_PER_TOPICS):
     """Generates topics from word clusters.
 
     Arguments:
@@ -59,7 +59,3 @@ def word_topics(num_topics, num_words_per_topics):
         for item in topics[i]:
             print(item)
         print('\n')
-
-
-if __name__ == '__main__':
-    word_topics(NUM_TOPICS, NUM_WORDS_PER_TOPICS)

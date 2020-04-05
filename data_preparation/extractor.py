@@ -3,8 +3,8 @@ import datetime
 
 import requests
 
-from loader import MongoLoader
-from models import RedditPost
+from data_preparation.loader import MongoLoader
+from data_preparation.models import RedditPost
 
 FLAIRS = ['NO A-HOLES HERE', 'ASSHOLE', 'NOT THE A-HOLE', 'EVERYONE SUCKS']
 
@@ -84,7 +84,7 @@ class DataStore:
             self.label_dict[label] = []
 
 
-def get_data(min_count, before_epoch, end_epoch):
+def extract(min_count, before_epoch, end_epoch):
     """ Fetches and stores reddit data
 
     Arguments:
@@ -121,22 +121,3 @@ def get_data(min_count, before_epoch, end_epoch):
         ds.print_counts()
 
     return ds.label_dict
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Extracts reddit data')
-    parser.add_argument(
-        '--min_count', help='Data will be fetched in batches until all classes have a <min_count> number of posts associated with it.(Default=100)',
-        default=100, type=int)
-    parser.add_argument(
-        '--start_epoch', help='Posts will be fetched started from that epoch and will go backwards in time (Default=Current epoch)', default=datetime.datetime.now().timestamp(),
-        type=int)
-    parser.add_argument(
-        '--end_epoch', help='Extractor will stop fetching if it sees that the post\'s timestamp is lower than this value (Default=0)', default=0,
-        type=int)
-    args = parser.parse_args()
-
-    start_epoch = args.start_epoch
-    min_count = args.min_count
-    end_epoch = args.end_epoch
-    get_data(min_count, start_epoch, end_epoch)

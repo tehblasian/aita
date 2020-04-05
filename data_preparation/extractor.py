@@ -107,6 +107,7 @@ def extract(min_count, before_epoch, end_epoch):
             created_at = post['created_utc']
 
             if created_at < end_epoch:
+                # Preemptively breaks when posts are older than end_epoch
                 ds.save_posts()
                 ds.print_counts()
                 break
@@ -115,9 +116,15 @@ def extract(min_count, before_epoch, end_epoch):
             if label is not None and label.upper() in FLAIRS:
                 ds.add_data_point(label.upper(), reddit_post)
             before_epoch = created_at
-        print('At Batch #{}'.format(n_batch))
-        n_batch += 1
-        ds.save_posts()
-        ds.print_counts()
+        else:
+            # Continues if inner loop wasn't broken
+            print('At Batch #{}'.format(n_batch))
+            n_batch += 1
+            ds.save_posts()
+            ds.print_counts()
+            continue
+        
+        break
+
 
     return ds.label_dict

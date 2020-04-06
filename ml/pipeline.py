@@ -43,18 +43,6 @@ class AITAPipeline:
         self._classifier = classifier
         return self
 
-
-    def undersample_data(self):
-        """Fixes data imbalances by undersampling overrepresented classes
-        
-        Returns:
-            DataFrame -- Dataframe representation of an article
-        """
-        class_distribution = self._dataset.groupBy(self._dataset.label).count()
-        distribution_dict = class_distribution.rdd.map(lambda x: (x['label'], x['count'])).collectAsMap()
-        lowest_count = min(distribution_dict.values())
-        sampling_fractions = {label: lowest_count/distribution_dict[label] for label in distribution_dict}
-        return self._dataset.sampleBy('label', fractions=sampling_fractions)
     
     def run(self):
         """Runs the pipeline
@@ -65,9 +53,8 @@ class AITAPipeline:
         
         if not hasattr(self, '_dataset') or not hasattr(self, '_transformer') or not hasattr(self, '_classifier'):
             raise AttributeError('Please specify a dataset, a data transformer and a classifier')
-        dataset = self.undersample_data() if self.fix_imbalance else self._dataset
 
-        self._transformer = self._transformer(self._spark, dataset)
+        self._transformer = self._transformer(self._spark, self._dataset)
         data = self._transformer.transform()
         
         self._classifier = self._classifier(data)

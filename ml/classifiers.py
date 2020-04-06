@@ -7,6 +7,13 @@ from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 
 
 class AbstractClassifier(ABC):
+    def __init__(self, dataset, train_ratio=0.8, fix_imbalance=True):
+        self.dataset = dataset
+        self.classifier = None
+        self.evaluator = MulticlassClassificationEvaluator()
+        self.train_set, self.test_set = dataset.randomSplit([train_ratio, 1-train_ratio])
+        self.train_set = self.undersample_data(self.train_set) if fix_imbalance else self.train_set
+
     def train(self, k_folds=7):
         """Trains a classification model using k-fold cross validation
         
@@ -16,6 +23,18 @@ class AbstractClassifier(ABC):
         param_grid = self._get_param_grid()
         cross_validator = CrossValidator(estimator=self.classifier, estimatorParamMaps=param_grid, evaluator=self.evaluator, numFolds=k_folds)
         self.model = cross_validator.fit(self.train_set)
+
+    def undersample_data(self, df):
+        """Fixes data imbalances by undersampling overrepresented classes
+        
+        Returns:
+            DataFrame -- Dataframe representation of an article
+        """
+        class_distribution = df.groupBy(df.label).count()
+        distribution_dict = class_distribution.rdd.map(lambda x: (x['label'], x['count'])).collectAsMap()
+        lowest_count = min(distribution_dict.values())
+        sampling_fractions = {label: lowest_count/distribution_dict[label] for label in distribution_dict}
+        return df.sampleBy('label', fractions=sampling_fractions)
 
     def evaluate(self):
         """Evaluates the trained model
@@ -42,10 +61,9 @@ class AbstractClassifier(ABC):
 
 class NaiveBayesClassifier(AbstractClassifier):
     def __init__(self, dataset, train_ratio=0.8):
-        self.dataset = dataset
+        super().__init__(dataset)
         self.classifier = NaiveBayes(labelCol='label', featuresCol='features')
-        self.evaluator = MulticlassClassificationEvaluator()
-        self.train_set, self.test_set = dataset.randomSplit([train_ratio, 1-train_ratio])
+
     
     def _get_param_grid(self):
         return ParamGridBuilder() \
@@ -54,11 +72,9 @@ class NaiveBayesClassifier(AbstractClassifier):
 
 class RandomForestClassifier(AbstractClassifier):
     def __init__(self, dataset, train_ratio=0.8):
-        self.dataset = dataset
+        super().__init__(dataset)
         self.classifier = RandomForest(labelCol='label', featuresCol='features', impurity='gini',
                                               maxBins=31)
-        self.evaluator = MulticlassClassificationEvaluator()
-        self.train_set, self.test_set = dataset.randomSplit([train_ratio, 1-train_ratio])
 
     def _get_param_grid(self):
         return ParamGridBuilder() \
@@ -68,10 +84,8 @@ class RandomForestClassifier(AbstractClassifier):
 
 class SVMClassifier(AbstractClassifier):
     def __init__(self, dataset, train_ratio=0.8):
-        self.dataset = dataset
+        super().__init__(dataset)
         self.classifier = OneVsRest(classifier=LinearSVC(maxIter=10))
-        self.evaluator = MulticlassClassificationEvaluator()
-        self.train_set, self.test_set = dataset.randomSplit([train_ratio, 1-train_ratio])
     
     def _get_param_grid(self):
         self.classifier.getClassifier

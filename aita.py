@@ -93,7 +93,7 @@ if __name__ == '__main__':
 
         if args.log is not None:
             log = open(args.log, 'a')
-            log.write("[{} - {}]: f1 {}; accuracy {}; precision {}; recall {}\n"
+            log.write("[{} - {}], f1 {}, accuracy {}, precision {}, recall {}\n"
                 .format(args.classifier, args.transformer, f1, accuracy, precision, recall))
         else:
             print('Accuracy', accuracy)  

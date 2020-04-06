@@ -1,5 +1,6 @@
 import inspect
 
+from pyspark.ml.feature import MinMaxScaler
 
 class AITAPipeline:
     def __init__(self, spark, fix_imbalance=True):
@@ -56,6 +57,18 @@ class AITAPipeline:
         sampling_fractions = {label: lowest_count/distribution_dict[label] for label in distribution_dict}
         return self._dataset.sampleBy('label', fractions=sampling_fractions)
     
+    def scale_data(self, data):
+        """Scales feature data by remapping the range to [0, 1]
+
+        Returns:
+            DataFrame -- Dataframe representation of an article
+        """
+        scaler = MinMaxScaler(inputCol="features", outputCol="scaledFeatures")
+        scaler_model = scaler.fit(data)
+        scaled_data = scaler_model.transform(data)
+
+        return scaled_data.drop("features").withColumnRenamed("scaledFeatures", "features")
+
     def run(self):
         """Runs the pipeline
         
@@ -65,12 +78,15 @@ class AITAPipeline:
         
         if not hasattr(self, '_dataset') or not hasattr(self, '_transformer') or not hasattr(self, '_classifier'):
             raise AttributeError('Please specify a dataset, a data transformer and a classifier')
+
         dataset = self.undersample_data() if self.fix_imbalance else self._dataset
 
         self._transformer = self._transformer(self._spark, dataset)
         data = self._transformer.transform()
         
-        self._classifier = self._classifier(data)
+        scaled_data = self.scale_data(data)
+
+        self._classifier = self._classifier(scaled_data)
         self._classifier.train()
 
         return self._classifier.evaluate()

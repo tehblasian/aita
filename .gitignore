@@ -1,4 +1,12 @@
+# Environment
 venv
-.vscode
+
+# Compiled
 __pycache__/
+
+# Metadata
+.DS_Store
+
+# IDE Specific
+.vscode
 .idea/

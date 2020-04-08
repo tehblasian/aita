@@ -1,11 +1,14 @@
 import inspect
 
 from pyspark.ml.feature import MinMaxScaler
+from pyspark.sql import Row
 
 class AITAPipeline:
-    def __init__(self, spark, fix_imbalance=True):
+    def __init__(self, spark, normalize, undersample, use_weights):
         self._spark = spark
-        self.fix_imbalance = fix_imbalance
+        self._normalize = normalize
+        self._undersample = undersample
+        self._use_weights = use_weights
 
     def dataset(self, dataset):
         """Sets the data that will be transformed, and trained/tested on
@@ -57,6 +60,12 @@ class AITAPipeline:
 
         return scaled_data.drop("features").withColumnRenamed("scaledFeatures", "features")
 
+    def apply_weights(self, df):
+        data_count = df.count()
+        class_distribution = df.groupBy(df.label).count()
+        distribution_dict = class_distribution.rdd.map(lambda x: (x['label'], 1 - (x['count']/data_count))).collectAsMap()
+        return self._spark.createDataFrame(df.rdd.map(lambda r: Row(label=r.label, features=r.features, weight=distribution_dict[r.label])))
+
     def run(self):
         """Runs the pipeline
         
@@ -70,9 +79,13 @@ class AITAPipeline:
         self._transformer = self._transformer(self._spark, self._dataset)
         data = self._transformer.transform()
         
-        scaled_data = self.scale_data(data)
+        if self._normalize:
+            data = self.scale_data(data)
+        
+        if self._use_weights:
+            data = self.apply_weights(data)
 
-        self._classifier = self._classifier(scaled_data)
+        self._classifier = self._classifier(data, undersample=self._undersample)
         self._classifier.train()
 
         return self._classifier.evaluate()

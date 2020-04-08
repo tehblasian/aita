@@ -41,6 +41,9 @@ if __name__ == '__main__':
     train_parser = subparsers.add_parser('train', help='Train model')
     train_parser.add_argument('transformer', choices=['frequency', 'doc2vec', 'tfidf'])
     train_parser.add_argument('classifier', choices=['naive-bayes', 'random-forest', 'svm'])
+    train_parser.add_argument('--normalize', action='store_const', const=True, default=False, help='Normalize transformed data before classifying')
+    train_parser.add_argument('--undersample', action='store_const', const=True, default=False, help='Undersample overrepresented data before classifying')
+    train_parser.add_argument('--weights', action='store_const', const=True, default=False, help='Use weights to balance data before classifying')
     train_parser.add_argument('--log', help='Log results to file')
 
     args = parser.parse_args()
@@ -85,7 +88,7 @@ if __name__ == '__main__':
         spark = init_spark(AITA_CLEANED_COLLECTION)
         dataset = spark.read.format('mongo').load()
 
-        pipeline = AITAPipeline(spark)
+        pipeline = AITAPipeline(spark, normalize=args.normalize, undersample=args.undersample, use_weights=args.weights)
         f1, accuracy, precision, recall = (pipeline.dataset(dataset)
             .transformer(transformer)
             .classifier(classifier)

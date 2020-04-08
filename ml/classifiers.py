@@ -7,12 +7,12 @@ from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 
 
 class AbstractClassifier(ABC):
-    def __init__(self, dataset, train_ratio=0.8, fix_imbalance=True):
+    def __init__(self, dataset, train_ratio, undersample):
         self.dataset = dataset
         self.classifier = None
         self.evaluator = MulticlassClassificationEvaluator()
         self.train_set, self.test_set = dataset.randomSplit([train_ratio, 1-train_ratio])
-        self.train_set = self.undersample_data(self.train_set) if fix_imbalance else self.train_set
+        self.train_set = self.undersample_data(self.train_set) if undersample else self.train_set
 
     def train(self, k_folds=7):
         """Trains a classification model using k-fold cross validation
@@ -60,9 +60,9 @@ class AbstractClassifier(ABC):
         pass
 
 class NaiveBayesClassifier(AbstractClassifier):
-    def __init__(self, dataset, train_ratio=0.8):
-        super().__init__(dataset)
-        self.classifier = NaiveBayes(labelCol='label', featuresCol='features')
+    def __init__(self, dataset, train_ratio=0.8, undersample=False):
+        super().__init__(dataset, train_ratio, undersample)
+        self.classifier = NaiveBayes(labelCol='label', featuresCol='features', weightCol="weight")
 
     
     def _get_param_grid(self):
@@ -71,8 +71,8 @@ class NaiveBayesClassifier(AbstractClassifier):
                .build()
 
 class RandomForestClassifier(AbstractClassifier):
-    def __init__(self, dataset, train_ratio=0.8):
-        super().__init__(dataset)
+    def __init__(self, dataset, train_ratio=0.8, undersample=False):
+        super().__init__(dataset, train_ratio, undersample)
         self.classifier = RandomForest(labelCol='label', featuresCol='features', impurity='gini',
                                               maxBins=31)
 
@@ -83,9 +83,9 @@ class RandomForestClassifier(AbstractClassifier):
             .build()
 
 class SVMClassifier(AbstractClassifier):
-    def __init__(self, dataset, train_ratio=0.8):
-        super().__init__(dataset)
-        self.classifier = OneVsRest(classifier=LinearSVC(maxIter=10))
+    def __init__(self, dataset, train_ratio=0.8, undersample=False):
+        super().__init__(dataset, train_ratio, undersample)
+        self.classifier = OneVsRest(classifier=LinearSVC(maxIter=10, weightCol="weight"))
     
     def _get_param_grid(self):
         self.classifier.getClassifier

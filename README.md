@@ -92,7 +92,7 @@ From figure 1, the distribution tells us that the real data is greatly imbalance
     Figure 3: Distributions of the Top 30 Words by Label
 </p>
 
-We also attempted to extract topics from the content of the posts. Labelling for the topics is mostly difficult due to the sheer amount of words involved and the few number of topics chosen to group by for all the data. The following are a few interesting results from this process, tuples are displayed as (word, weight_of_word_for_topic):
+We also attempted to extract topics from the content of the posts using Latent Dirichlet Allocation (LDA). Modelling for the topics is mostly difficult due to the sheer amount of words involved and the few number of topics chosen to group by for all the data. The following are a few interesting results obtained through the process with topic labels that we have termed appropriately and tuples representing (word, weight_of_word_for_topic):
 
 ```
 Topic 0: "Family"

@@ -105,7 +105,7 @@ To evaluate the trained models, we used k-fold cross validation and obtained the
 
 The code for this portion can be found under `/ml`.
 
-More information on these classification algorithms can be found [here].(https://spark.apache.org/docs/2.4.5/ml-classification-regression.html)
+More information on these classification algorithms can be found [here](https://spark.apache.org/docs/2.4.5/ml-classification-regression.html).
 
 ## III. Results
 
